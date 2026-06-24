@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import time
 import traceback
 from datetime import datetime, timezone
@@ -10,6 +11,8 @@ from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime import QiskitRuntimeService
 
 import numpy as np
+
+IBM_QUANTUM_TOKEN = os.environ.get("IBM_QUANTUM_TOKEN")
 from troma import (
     CombinatorialProblem,
     ConstraintSketchMap,
@@ -23,10 +26,9 @@ from easy_dnr import DNR_Network
 #########################################################
 
 benchmark_list = [
-    # "9_bus", 
+    "9_bus", 
     "12_bus", 
-    "15_bus", 
-    # "33_bus"
+    "15_bus"
     ]
 
 USE_GPU = True       # use GPU device in Aer simulator (sanity check)
@@ -47,23 +49,21 @@ PRETRAIN_MAX_ITER = 60 #for 15_bus only
 ITERATION_NUMBER = 1
 
 number_layers = {
-    # "9_bus": 1,
+    "9_bus": 1,
     "12_bus": 1,
-    "15_bus": 1,
-    # "33_bus": 1,
+    "15_bus": 1
 }
 
-warm_seeds_per_network = {
+seeds_per_network = {
     "9_bus" : 123,
     "12_bus" : 456,
-    "15_bus" : 840311,
-    "33_bus" : 988695,
+    "15_bus" : 840311
 }
 
 sim_types = {
     "9_bus": [
-        # "NN_2_aoa_native",
-        # "NN_2_qaoa_native",
+        "NN_2_aoa_native",
+        "NN_2_qaoa_native",
     ],
     "12_bus": [
         "NN_2_aoa_native",
@@ -72,10 +72,6 @@ sim_types = {
     "15_bus": [
         "NN_2_aoa_native",
         "NN_2_qaoa_native",
-    ],
-    "33_bus": [
-        # "NN_2_aoa_native",
-        # "NN_2_qaoa_native",
     ]
 }
 
@@ -169,7 +165,7 @@ def _extract_aoa_summary(optimizer_metadata):
     }
 
 
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
+RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 
 
 RESULTS_FILE = None  # set at the start of main() with a run timestamp
@@ -328,12 +324,17 @@ def main():
         )
         print(f"[FAKE MODE] Using noisy Aer MPS simulator with {QPU_BACKEND_NAME} noise model\n")
     else:
+        if not IBM_QUANTUM_TOKEN:
+            raise RuntimeError(
+                "IBM_QUANTUM_TOKEN environment variable is not set.\n"
+                "Get your token from https://quantum.ibm.com/ and run:\n"
+                "  export IBM_QUANTUM_TOKEN='your-token-here'"
+            )
         QiskitRuntimeService.delete_account()
-
         QiskitRuntimeService.save_account(
             channel="ibm_quantum_platform",
-            token="NHHC5dxByPpGHLdJJ-fLV4Uqr33mDj9nIidzIKs1tP7Z",
-            overwrite=True
+            token=IBM_QUANTUM_TOKEN,
+            overwrite=True,
         )
 
         service = QiskitRuntimeService()
@@ -361,7 +362,7 @@ def main():
                                     feasibility_function=lambda x: int(np.sum(x)) == number_of_ones,
         )
 
-        seed = warm_seeds_per_network[network]
+        seed = seeds_per_network[network]
         print(f"  Sampling {N_SAMPLES} points (seed={seed})...")
         problem.sampling(
             n_samples=N_SAMPLES,

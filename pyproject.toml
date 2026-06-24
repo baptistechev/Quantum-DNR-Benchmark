@@ -1,5 +1,5 @@
 [project]
-name = "full_benchmark"
+name = "quantum-dnr-benchmark"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
@@ -21,6 +21,9 @@ dependencies = [
   "qaoa_training_pipeline @ git+https://github.com/qiskit-community/qaoa_training_pipeline",
   "qopt_best_practices @ git+https://github.com/qiskit-community/qopt-best-practices"
 ]
+
+[tool.setuptools.packages.find]
+include = ["benchmark_scripts*"]
 
 [project.optional-dependencies]
 # CUDA 11 GPU build of qiskit-aer; requires an nvidia/cuda:11.8 environment (see Dockerfile)

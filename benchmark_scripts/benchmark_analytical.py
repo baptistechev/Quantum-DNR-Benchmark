@@ -16,13 +16,13 @@ from easy_dnr import DNR_Network
 sim_types = {
     '9_bus': ['baran', 'merlin','taylor'],
     '12_bus': ['baran', 'merlin','taylor'],
-    # '15_bus': ['baran', 'merlin','taylor'],
-    # '33_bus': ['baran', 'merlin','taylor'],
+    '15_bus': ['baran', 'merlin','taylor'],
+    '33_bus': ['baran', 'merlin','taylor'],
 }
 
-benchmark_list = ['9_bus', '12_bus']
+benchmark_list = ['9_bus', '12_bus','15_bus', '33_bus']
 
-RESULTS_DIR = Path(__file__).resolve().parent / 'results'
+RESULTS_DIR = Path(__file__).resolve().parent.parent / 'results'
 RESULTS_FILE = None
 
 

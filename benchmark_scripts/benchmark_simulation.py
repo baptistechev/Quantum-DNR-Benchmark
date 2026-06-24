@@ -55,81 +55,77 @@ simulator_mode = {
 sim_types = {
     "9_bus" : {
         "state-of-art": [
-            # "genetic",
-            # "simulated_annealing_pp",
-            # "simulated_annealing_dnr_pp"
+            "genetic",
+            "simulated_annealing_pp" #simulated annealing with custom transition function (preserves hamming weight)
         ],
         "classical": [
-            # "classical_NN_2", 
+            "classical_NN_2", 
         ],
         "quantum": [
-            # "quantum_NN_2", 
-            # "quantum_NN_2_pp", 
-            # "quantum_NN_3", 
-            # "quantum_NN_3_pp", 
-            # "quantum_NN_4", 
-            # "quantum_NN_4_pp", 
-            # "quantum_all_2", 
-            # "quantum_all_2_pp", 
-            # "quantum_all_3", 
-            # "quantum_all_3_pp",
+            "quantum_NN_2", 
+            "quantum_NN_2_pp", 
+            "quantum_NN_3", 
+            "quantum_NN_3_pp", 
+            "quantum_NN_4", 
+            "quantum_NN_4_pp", 
+            "quantum_all_2", 
+            "quantum_all_2_pp", 
+            "quantum_all_3", 
+            "quantum_all_3_pp",
         ]
     },
     "12_bus": {
         "state-of-art": [
-            # "genetic",
-            # "simulated_annealing_pp",
-            # "simulated_annealing_dnr_pp"
+            "genetic",
+            "simulated_annealing_pp"
         ],
         "classical": [
-            # "classical_NN_2", 
+            "classical_NN_2", 
         ],
         "quantum": [
-            # "quantum_NN_2", 
-            # "quantum_NN_2_pp", 
-            # "quantum_NN_3", 
-            # "quantum_NN_3_pp", 
-            # "quantum_NN_4", 
-            # "quantum_NN_4_pp", 
-            # "quantum_all_2", 
-            # "quantum_all_2_pp", 
-            # "quantum_all_3", 
-            # "quantum_all_3_pp",
+            "quantum_NN_2", 
+            "quantum_NN_2_pp", 
+            "quantum_NN_3", 
+            "quantum_NN_3_pp", 
+            "quantum_NN_4", 
+            "quantum_NN_4_pp", 
+            "quantum_all_2", 
+            "quantum_all_2_pp", 
+            "quantum_all_3", 
+            "quantum_all_3_pp",
         ]
     },
     "15_bus": {
         "state-of-art": [
-            # "genetic",
-            # "simulated_annealing_pp",
-            # "simulated_annealing_dnr_pp"
+            "genetic",
+            "simulated_annealing_pp"
         ],
         "classical": [
-            # "classical_NN_2"
+            "classical_NN_2"
         ],
         "quantum": [
-            # "quantum_NN_2",
-            # "quantum_NN_2_pp",
-            # "quantum_NN_3",
-            # "quantum_NN_3_pp",
-            # "quantum_NN_4",
-            # "quantum_NN_4_pp",
-            # "quantum_all_2",
-            # "quantum_all_2_pp",
-            # "quantum_all_3",
+            "quantum_NN_2",
+            "quantum_NN_2_pp",
+            "quantum_NN_3",
+            "quantum_NN_3_pp",
+            "quantum_NN_4",
+            "quantum_NN_4_pp",
+            "quantum_all_2",
+            "quantum_all_2_pp",
+            "quantum_all_3",
             "quantum_all_3_pp",
         ]
     },
     "33_bus": {
         "state-of-art": [
-            # "genetic",
-            # "simulated_annealing_pp",
-            # "simulated_annealing_dnr_pp"
+            "genetic",
+            "simulated_annealing_pp"
         ],
         "classical": [
-            # "classical_NN_2", 
-            # "classical_NN_3", 
-            # "classical_NN_4", 
-            # "classical_all_2"
+            "classical_NN_2", 
+            "classical_NN_3", 
+            "classical_NN_4", 
+            "classical_all_2"
         ],
         "quantum": [
             "quantum_NN_2", 
@@ -266,7 +262,7 @@ def _extract_aoa_summary(optimizer_metadata):
     }
 
 
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
+RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
 
 
 RESULTS_FILE = None  # set at the start of main() with a run timestamp
@@ -698,10 +694,24 @@ def main():
     parser.add_argument("--methods", nargs="+", choices=["state-of-art", "classical", "quantum"],
                         default=None, metavar="CATEGORY",
                         help="Method categories to run. Choices: %(choices)s. Default: all.")
+    parser.add_argument("--run-from-seeds", type=str, default=None, metavar="SEEDS_FILE",
+                        help="Path to a JSONL file of seeds. Each line has {network, category, sim_type, n_runs, seeds}. "
+                             "Replays exactly those runs with the given seeds instead of drawing new ones.")
     args = parser.parse_args()
 
     active_networks = args.networks or benchmark_list
     active_categories = set(args.methods or ["state-of-art", "classical", "quantum"])
+
+    # Load seed schedule if provided
+    seed_schedule = {}
+    if args.run_from_seeds:
+        seed_path = Path(args.run_from_seeds)
+        assert seed_path.exists(), f"Seed file not found: {seed_path}"
+        with seed_path.open() as f:
+            for line in f:
+                entry = json.loads(line)
+                key = (entry["network"], entry["sim_type"])
+                seed_schedule[key] = entry["seeds"]
 
     if args.estimate:
         estimate_simulation_times(networks=active_networks, categories=active_categories)
@@ -749,12 +759,17 @@ def main():
         #state-of-art
         for sim_type in (sim_types[network]["state-of-art"] if "state-of-art" in active_categories else []):
 
-            #decide number of runs we can do in sim_budget
-            n_runs = min(MAX_NUMBER_OF_RUNS, sim_budget // sim_time[network][sim_type])
+            #decide number of runs and seeds
+            sched_key = (network, sim_type)
+            if sched_key in seed_schedule:
+                run_seeds = seed_schedule[sched_key]
+                n_runs = len(run_seeds)
+            else:
+                n_runs = min(MAX_NUMBER_OF_RUNS, sim_budget // sim_time[network][sim_type])
+                run_seeds = [int(rng.integers(0, 1_000_000)) for _ in range(n_runs)]
             print(f"Running {n_runs} runs for {sim_type} on {network} benchmark.")
 
-            for run in range(n_runs):
-                seed = int(rng.integers(0, 1_000_000))
+            for run, seed in enumerate(run_seeds):
                 run_start = time.perf_counter()
                 try:
                     if sim_type == "genetic":
@@ -835,8 +850,14 @@ def main():
             optimizer_name = optimizer_per_method[sim_type]
             is_pp = is_post_process_method[sim_type]
 
-            #decide number of runs we can do in sim_budget
-            n_runs = min(MAX_NUMBER_OF_RUNS, sim_budget // sim_time[network][sim_type])
+            #decide number of runs and seeds
+            sched_key = (network, sim_type)
+            if sched_key in seed_schedule:
+                run_seeds = seed_schedule[sched_key]
+                n_runs = len(run_seeds)
+            else:
+                n_runs = min(MAX_NUMBER_OF_RUNS, sim_budget // sim_time[network][sim_type])
+                run_seeds = [int(rng.integers(0, 1_000_000)) for _ in range(n_runs)]
             print(f"Running {n_runs} runs for {sim_type} on {network} benchmark.")
 
             problem = CombinatorialProblem(dnr_net.evaluate_mcco,
@@ -850,10 +871,7 @@ def main():
                                             constraints=constraints
             )
 
-            for run in range(n_runs):
-
-                #Choose the seed for this run
-                seed = int(rng.integers(0, 1_000_000))
+            for run, seed in enumerate(run_seeds):
                 run_start = time.perf_counter()
 
                 try:
@@ -943,14 +961,17 @@ def main():
             optimizer_name = optimizer_per_method[sim_type]
             is_pp = is_post_process_method[sim_type]
 
-            #decide number of runs we can do in sim_budget
-            n_runs = min(MAX_NUMBER_OF_RUNS, sim_budget // sim_time[network][sim_type])
+            #decide number of runs and seeds
+            sched_key = (network, sim_type)
+            if sched_key in seed_schedule:
+                run_seeds = seed_schedule[sched_key]
+                n_runs = len(run_seeds)
+            else:
+                n_runs = min(MAX_NUMBER_OF_RUNS, sim_budget // sim_time[network][sim_type])
+                run_seeds = [int(rng.integers(0, 1_000_000)) for _ in range(n_runs)]
             print(f"Running {n_runs} runs for {sim_type} on {network} benchmark.")
 
-            for run in range(n_runs):
-
-                #choose the seed for this run
-                seed = int(rng.integers(0, 1_000_000))
+            for run, seed in enumerate(run_seeds):
 
                 #Run this case in its own process: a fresh AerSimulator/CUDA context per
                 #run, isolated so a crash here can't take down the whole benchmark.
