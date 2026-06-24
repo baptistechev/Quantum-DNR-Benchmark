@@ -1,0 +1,61 @@
+{
+    "15_bus": {
+        "classical_NN_2": 1,
+        "quantum_NN_2": 93,
+        "quantum_NN_2_pp": 93,
+        "quantum_NN_3": 115,
+        "quantum_NN_3_pp": 116,
+        "quantum_NN_4": 127,
+        "quantum_NN_4_pp": 129,
+        "quantum_all_2": 106,
+        "quantum_all_2_pp": 106,
+        "quantum_all_3": 204,
+        "quantum_all_3_pp": 199,
+        "genetic": 1,
+        "simulated_annealing_pp": 1,
+        "simulated_annealing_dnr_pp": 8
+    },
+    "33_bus": {
+        "classical_NN_2": 1,
+        "classical_NN_3": 7,
+        "classical_NN_4": 175,
+        "classical_all_2": 82,
+        "quantum_NN_2": 309,
+        "quantum_NN_2_pp": 361,
+        "genetic": 4,
+        "simulated_annealing_pp": 2,
+        "simulated_annealing_dnr_pp": 13
+    },
+    "9_bus": {
+        "genetic": 2,
+        "simulated_annealing_pp": 2,
+        "simulated_annealing_dnr_pp": 8,
+        "classical_NN_2": 1,
+        "quantum_NN_2_pp": 44,
+        "quantum_NN_3_pp": 29,
+        "quantum_NN_4_pp": 44,
+        "quantum_all_2_pp": 30,
+        "quantum_all_3_pp": 64,
+        "quantum_NN_2": 40,
+        "quantum_NN_3": 27,
+        "quantum_NN_4": 42,
+        "quantum_all_2": 29,
+        "quantum_all_3": 67
+    },
+    "12_bus": {
+        "genetic": 1,
+        "simulated_annealing_pp": 2,
+        "simulated_annealing_dnr_pp": 9,
+        "classical_NN_2": 1,
+        "quantum_NN_2_pp": 67,
+        "quantum_NN_3_pp": 74,
+        "quantum_NN_4_pp": 109,
+        "quantum_all_2_pp": 74,
+        "quantum_all_3_pp": 157,
+        "quantum_NN_2": 66,
+        "quantum_NN_3": 72,
+        "quantum_NN_4": 110,
+        "quantum_all_2": 71,
+        "quantum_all_3": 165
+    }
+}

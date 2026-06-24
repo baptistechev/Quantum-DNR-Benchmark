@@ -1,0 +1,27 @@
+[project]
+name = "full_benchmark"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy",
+  "scipy",
+  "psutil",
+  "pandapower",
+  "networkx",
+  "matplotlib",
+  "dwave-neal",
+  "qiskit-ibm-runtime",
+  "ommx",
+  "GridCalEngine",
+  "pyomo",
+  "easy_dnr @ git+https://github.com/baptistechev/EasyDNR",
+  "troma @ git+https://github.com/baptistechev/TrOMA.git@beta",
+  "qamomile @ git+https://github.com/baptistechev/Qamomile.git@feature/alternating_ansatz",
+  "dnrlib @ git+https://github.com/baptistechev/DNRlib.git@fix/taylor",
+  "qaoa_training_pipeline @ git+https://github.com/qiskit-community/qaoa_training_pipeline",
+  "qopt_best_practices @ git+https://github.com/qiskit-community/qopt-best-practices"
+]
+
+[project.optional-dependencies]
+# CUDA 11 GPU build of qiskit-aer; requires an nvidia/cuda:11.8 environment (see Dockerfile)
+gpu = ["qiskit-aer-gpu-cu11==0.17.2"]
