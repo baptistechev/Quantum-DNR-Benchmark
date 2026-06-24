@@ -6,13 +6,13 @@ Benchmark suite for Distribution Network Reconfiguration (DNR) comparing classic
 
 ```
 data/                          # Static reference data
-  {9,12,15,33}_bus.csv         # Exhaustive/sampled objective landscapes (for percentile rank evaluation)
+  {9,12,15,33}_bus.csv         # Brute-forced objective landscapes (for percentile rank evaluation)
 
 benchmark_scripts/
-  benchmark_simulation.py      # Main benchmark: classical + quantum simulation methods
+  benchmark_simulation.py      # Main benchmark: state-of-the-art + MCCO classical & quantum simulation methods
   benchmark_analytical.py      # Deterministic analytical methods (Baran, Merlin, Taylor)
-  benchmark_qpu.py             # Quantum hardware runs on IBM QPU (ibm_fez)
-  seeds.jsonl                  # Seed schedule for reproducible re-runs
+  benchmark_qpu.py             # Quantum hardware runs on IBM QPU or Noisy simulator (Default: ibm_fez)
+  seeds.jsonl                  # Seed that were used for the figures
   sim_time.json                # Per-method timing estimates (used to budget runs)
 
 results/                       # Benchmark outputs (JSONL)
